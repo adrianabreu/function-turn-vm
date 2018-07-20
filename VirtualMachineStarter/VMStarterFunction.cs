@@ -8,10 +8,10 @@ using Polly;
 
 namespace VirtualMachineStarter
 {
-    public static class Function1
+    public static class VMStarterFunction
     {
-        [FunctionName("Function1")]
-        public static async Task Run([TimerTrigger("0 */2 * * * *")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
+        [FunctionName("VMStarterFunction")]
+        public static async Task Run([TimerTrigger("0 0 6 * * 1-5")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
@@ -19,6 +19,7 @@ namespace VirtualMachineStarter
                 .Build();
 
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
+
             var azureContext = new AzureContext(
                 config["ClientId"], 
                 config["ClientSecret"],
@@ -34,6 +35,7 @@ namespace VirtualMachineStarter
 
             await policy.ExecuteAsync(async () =>
            {
+               log.Info($"Trying to turn up the virtual machine: {machineName} at {machineResourceGroup}");
                await azureContext.Context.VirtualMachines.StartAsync(machineResourceGroup, machineName);
 
            });

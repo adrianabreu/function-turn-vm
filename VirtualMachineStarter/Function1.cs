@@ -11,7 +11,7 @@ namespace VirtualMachineStarter
     public static class Function1
     {
         [FunctionName("Function1")]
-        public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
+        public static async Task Run([TimerTrigger("0 */2 * * * *")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
@@ -20,17 +20,17 @@ namespace VirtualMachineStarter
 
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
             var azureContext = new AzureContext(
-                config["Credendials:ClientId"], 
-                config["Credentials:ClientSecret"],
-                config["TenantId"], config["Credentials:SubscriptionId"]
+                config["ClientId"], 
+                config["ClientSecret"],
+                config["TenantId"], config["SubscriptionId"]
             );
 
-            var machineName = config["VirtualMachine:Name"];
-            var machineResourceGroup = config["VirtualMachine:ResourceGroup"];
+            var machineName = config["VirtualMachineName"];
+            var machineResourceGroup = config["VirtualMachineResourceGroup"];
 
-            var policy = Policy.
-                Handle<Exception>().
-                Retry(4);
+            var policy = Policy
+                .Handle<Exception>()
+                .RetryAsync(4);
 
             await policy.ExecuteAsync(async () =>
            {
